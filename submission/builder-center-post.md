@@ -129,7 +129,7 @@ AXIOM runs entirely on an **AWS Free-plan account, by design**. No card is bille
 
 ## Proof of coding agent connection
 
-Claude Code worked against our AWS account throughout the build. Every exhibit below is pulled live from AWS CloudTrail, the AXIOM ledger and git by `scripts/collect_evidence.py`, so anyone with the repository can reproduce it. Account IDs and IP addresses are masked.
+Claude Code worked against our AWS account throughout the build. Every exhibit below is pulled live from AWS CloudTrail, the AXIOM ledger and git by `scripts/collect_evidence.py`, so anyone with the repository can reproduce it. Account IDs, temporary credential IDs and IP addresses are masked. The cross-checks run on the real values before masking.
 
 **Exhibit 1: the coding agent's identities on AWS.** The builder credentials Claude Code ran with, the agent's own view-only session, and IAM refusing that session a direct write.
 
@@ -148,16 +148,15 @@ AccessDenied ... with an explicit deny in an identity-based policy
 AssumeRole   axiom-agent-role     session=ai-coding-agent
 AssumeRole   axiom-executor-role  by=axiom-broker  durationSeconds=900
              tags={"axiom-plan": "1790870119809-1dacf9af", "axiom-proof": "ad6b7721...5fac0f"}
-             issued accessKeyId=ASIA4H33...TNXS
-ExecuteChangeSet  by=axiom-executor-role/axiom-1790870119809-1dacf9af  accessKeyId=ASIA4H33...TNXS
+             issued accessKeyId=ASIA...TNXS
+ExecuteChangeSet  by=axiom-executor-role/axiom-1790870119809-1dacf9af  accessKeyId=ASIA...TNXS
 DeleteTable       by=axiom-executor-role/...  error=AccessDenied
 MATCH  ledger proof_hash == CloudTrail session tag axiom-proof
 MATCH  ledger access_key_id == key used for ExecuteChangeSet
 ```
 
-**Exhibit 3: AXIOM's ledger recorded the coding agent's own session.** The system the agent built, recording the agent.
+**Exhibit 3: AXIOM's ledger recorded the coding agent's own session.** The system the agent built, recording the agent. The live record is public: `GET /api/arena/plan/1790870119809-1dacf9af` on the app URL.
 
-<!-- Upload: submission/evidence/3-ledger-agent-session.png -->
 ```
 "source": "agent",
 "caller": "arn:aws:sts::8415****7298:assumed-role/axiom-agent-role/ai-coding-agent",

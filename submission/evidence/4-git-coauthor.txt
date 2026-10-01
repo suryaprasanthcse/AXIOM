@@ -1,4 +1,15 @@
 $ git log --format=...
+commit f960961  2026-10-01 23:16:56 +0530
+Author: Surya Prasanth R
+
+Evidence: show the agent session active when the plan ran
+
+Exhibit 2 picked the agent's most recent AssumeRole, which broke the
+chronology once newer sessions existed. It now selects the latest agent
+session at or before the plan's creation, so the chain reads in order.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 commit 2e53ea5  2026-10-01 23:15:10 +0530
 Author: Surya Prasanth R
 

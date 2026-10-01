@@ -13,7 +13,7 @@ $ curl https://oocyfygzrk.execute-api.us-west-2.amazonaws.com/api/arena/plan/179
   "verdict": "ALLOW",
   "proof_hash": "ad6b7721dc0fd6ceb429fb71855acda469d44f9230c831cc574cce65c75fac0f",
   "credential": {
-    "access_key_id": "ASIA4H33...TNXS",
+    "access_key_id": "ASIA...TNXS",
     "expiration": "2026-10-01T16:10:24+00:00",
     "role_arn": "arn:aws:iam::8415****7298:role/axiom-executor-role",
     "duration_seconds": 900,

@@ -7,11 +7,11 @@ CloudTrail (us-west-2), cross-checked against AXIOM ledger plan 1790870119809-1d
 2) The broker mints the proof-scoped credential: AssumeRole into axiom-executor-role
    2026-10-01T15:55:24Z  by=arn:aws:sts::8415****7298:assumed-role/axiom-broker-role/axiom-broker
    durationSeconds=900  tags={"axiom-plan": "1790870119809-1dacf9af", "axiom-proof": "ad6b7721dc0fd6ceb429fb71855acda469d44f9230c831cc574cce65c75fac0f"}
-   issued accessKeyId=ASIA4H33...TNXS
+   issued accessKeyId=ASIA...TNXS
 
 3) The agent uses it: ExecuteChangeSet
    2026-10-01T15:55:26Z  by=arn:aws:sts::8415****7298:assumed-role/axiom-executor-role/axiom-1790870119809-1dacf9af
-   accessKeyId=ASIA4H33...TNXS  changeSet=-1790870119809-1dacf9af/d6a93e72-1335-478d-af62-6b6e79b1d59e  error=none
+   accessKeyId=ASIA...TNXS  changeSet=-1790870119809-1dacf9af/d6a93e72-1335-478d-af62-6b6e79b1d59e  error=none
 
 4) Off-plan calls with an AXIOM credential are denied (DeleteTable)
    2026-10-01T14:01:54Z  by=arn:aws:sts::8415****7298:assumed-role/axiom-executor-role/axiom-1790863201929-675d9b90  error=AccessDenied
