@@ -1,0 +1,25 @@
+$ curl https://oocyfygzrk.execute-api.us-west-2.amazonaws.com/api/arena/plan/1790870119809-1dacf9af
+{
+  "plan_id": "1790870119809-1dacf9af",
+  "created_at": "2026-10-01T15:55:24.261+00:00",
+  "source": "agent",
+  "caller": "arn:aws:sts::8415****7298:assumed-role/axiom-agent-role/ai-coding-agent",
+  "stack": "axiom-demo-orders",
+  "intent": "Add a dead-letter queue for failed orders.",
+  "scope": [
+    "OrdersDLQ:add",
+    "OrdersQueue:modify"
+  ],
+  "verdict": "ALLOW",
+  "proof_hash": "ad6b7721dc0fd6ceb429fb71855acda469d44f9230c831cc574cce65c75fac0f",
+  "credential": {
+    "access_key_id": "ASIA4H33...TNXS",
+    "expiration": "2026-10-01T16:10:24+00:00",
+    "role_arn": "arn:aws:iam::8415****7298:role/axiom-executor-role",
+    "duration_seconds": 900,
+    "session_tags": {
+      "axiom-plan": "1790870119809-1dacf9af",
+      "axiom-proof": "ad6b7721dc0fd6ceb429fb71855acda469d44f9230c831cc574cce65c75fac0f"
+    }
+  }
+}

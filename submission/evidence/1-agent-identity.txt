@@ -1,0 +1,12 @@
+$ aws sts get-caller-identity --profile axiom          # the builder credentials Claude Code ran with
+{
+    "UserId": "AIDA4H33LITBEAXFKNMJ3",
+    "Account": "8415****7298",
+    "Arn": "arn:aws:iam::8415****7298:user/axiom-cdk-builder"
+}
+
+$ python agent/axiom_agent.py whoami                     # the coding agent's own identity
+arn:aws:sts::8415****7298:assumed-role/axiom-agent-role/ai-coding-agent
+
+$ aws cloudformation create-change-set ... --profile axiom-agent   # the agent cannot write directly
+aws: [ERROR]: An error occurred (AccessDenied) when calling the CreateChangeSet operation: User: arn:aws:sts::8415****7298:assumed-role/axiom-agent-role/ai-coding-agent is not authorized to perform: cloudformation:CreateChangeSet on resource: arn:aws:cloudformation:us-west-2:8415****7298:stack/axiom-demo-orders/65841cd0-bda0-11f1-b569-0adaaa5a1bc1 with an explicit deny in an identity-based policy

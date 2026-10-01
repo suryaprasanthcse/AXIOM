@@ -11,3 +11,6 @@ __pycache__/
 # Account-specific deploy outputs
 axiom-outputs.json
 .axiom-outputs.json
+
+# Headless browser profile used to render evidence
+submission/evidence/.edge-profile/

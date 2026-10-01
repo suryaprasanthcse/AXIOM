@@ -128,11 +128,57 @@ AXIOM runs entirely on an **AWS Free-plan account, by design**. No card is bille
 
 ## Proof of coding agent connection
 
-<!-- TODO before publishing: add these screenshots. This section is a pass/fail ship-gate requirement. -->
-1. **[Screenshot]** Claude Code session showing the agent running `aws sts get-caller-identity` and the live end-to-end tests against account `<account-id>`.
-2. **[Screenshot]** The AWS MCP Server (Agent Toolkit) connected in Claude Code, and CloudTrail events from the agent with `invokedBy: aws-mcp.amazonaws.com`.
-3. **[Screenshot]** An AXIOM ledger record whose caller is `arn:aws:sts::<account-id>:assumed-role/axiom-agent-role/ai-coding-agent`: the coding agent's own session, recorded by the system it built.
-4. **[Screenshot]** `git log` showing `Co-Authored-By: Claude Opus 5.5`.
+Claude Code worked against our AWS account throughout the build. Every exhibit below is pulled live from AWS CloudTrail, the AXIOM ledger and git by `scripts/collect_evidence.py`, so anyone with the repository can reproduce it. Account IDs and IP addresses are masked.
+
+**Exhibit 1: the coding agent's identities on AWS.** The builder credentials Claude Code ran with, the agent's own view-only session, and IAM refusing that session a direct write.
+
+<!-- Upload: submission/evidence/1-agent-identity.png -->
+```
+$ python agent/axiom_agent.py whoami
+arn:aws:sts::8415****7298:assumed-role/axiom-agent-role/ai-coding-agent
+$ aws cloudformation create-change-set ... --profile axiom-agent
+AccessDenied ... with an explicit deny in an identity-based policy
+```
+
+**Exhibit 2: CloudTrail independently confirms the whole chain.** Agent session, then credential issued with the proof hash as a session tag, then the change executed with that exact key, then an off-plan call denied.
+
+<!-- Upload: submission/evidence/2-cloudtrail-proof-chain.png -->
+```
+AssumeRole   axiom-agent-role     session=ai-coding-agent
+AssumeRole   axiom-executor-role  by=axiom-broker  durationSeconds=900
+             tags={"axiom-plan": "1790870119809-1dacf9af", "axiom-proof": "ad6b7721...5fac0f"}
+             issued accessKeyId=ASIA4H33...TNXS
+ExecuteChangeSet  by=axiom-executor-role/axiom-1790870119809-1dacf9af  accessKeyId=ASIA4H33...TNXS
+DeleteTable       by=axiom-executor-role/...  error=AccessDenied
+MATCH  ledger proof_hash == CloudTrail session tag axiom-proof
+MATCH  ledger access_key_id == key used for ExecuteChangeSet
+```
+
+**Exhibit 3: AXIOM's ledger recorded the coding agent's own session.** The system the agent built, recording the agent.
+
+<!-- Upload: submission/evidence/3-ledger-agent-session.png -->
+```
+"source": "agent",
+"caller": "arn:aws:sts::8415****7298:assumed-role/axiom-agent-role/ai-coding-agent",
+"scope": ["OrdersDLQ:add", "OrdersQueue:modify"],
+"verdict": "ALLOW",
+"proof_hash": "ad6b7721dc0fd6ceb429fb71855acda469d44f9230c831cc574cce65c75fac0f"
+```
+
+**Exhibit 4: git history with the coding agent as co-author.**
+
+<!-- Upload: submission/evidence/4-git-coauthor.png -->
+```
+Author: Surya Prasanth R
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+```
+
+<!-- TODO: Exhibit 5, AWS MCP Server (Agent Toolkit) calls with invokedBy: aws-mcp.amazonaws.com, once the server is reconnected. -->
+
+
+## Try the proof yourself
+
+Open the live app and scroll to the ledger. Rows marked **AGENT** and **MINTED** are real deployments by the coding agent. Each one's proof hash is the `axiom-proof` session tag CloudTrail recorded on its credential. Arena rows are evaluated and logged but never receive a credential.
 
 ## Where it's headed (Startup track)
 
