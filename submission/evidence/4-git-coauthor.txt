@@ -1,4 +1,18 @@
 $ git log --format=...
+commit 2e53ea5  2026-10-01 23:15:10 +0530
+Author: Surya Prasanth R
+
+Add Exhibit 5: coding agent on the AWS MCP Server, from CloudTrail
+
+The agent connects to the AWS MCP Server (Agent Toolkit for AWS) as the
+view-only axiom-agent-role. CloudTrail records each call with
+invokedBy aws-mcp.amazonaws.com: GetCallerIdentity and DescribeStacks
+allowed, CreateChangeSet and iam:GetRole denied by IAM. The evidence
+script now searches both regions and read and write events. The post
+credits the AWS MCP Server and replaces the last placeholder.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 commit 9eec7ed  2026-10-01 22:27:59 +0530
 Author: Surya Prasanth R
 

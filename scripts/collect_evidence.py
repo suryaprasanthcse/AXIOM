@@ -64,13 +64,16 @@ def exhibit_cloudtrail(record: dict) -> str:
     session_name = f"axiom-{AGENT_PLAN}"
     out = [f"CloudTrail (us-west-2), cross-checked against AXIOM ledger plan {AGENT_PLAN}", ""]
 
-    out.append("1) The coding agent's session: AssumeRole into axiom-agent-role")
-    for e in cloudtrail_events(ct, "AssumeRole", since):
-        rp = e.get("requestParameters") or {}
-        if str(rp.get("roleArn", "")).endswith("role/axiom-agent-role"):
-            out.append(f"   {e['eventTime']}  session={rp.get('roleSessionName')}  by={e['userIdentity'].get('arn')}")
-            out.append(f"   userAgent={e.get('userAgent', '')[:110]}")
-            break
+    out.append("1) The coding agent's session: AssumeRole into axiom-agent-role (the one active when the plan ran)")
+    plan_time = datetime.fromisoformat(record["created_at"])
+    sessions = [e for e in cloudtrail_events(ct, "AssumeRole", since)
+                if str((e.get("requestParameters") or {}).get("roleArn", "")).endswith("role/axiom-agent-role")
+                and datetime.fromisoformat(e["eventTime"].replace("Z", "+00:00")) <= plan_time]
+    if sessions:
+        e = max(sessions, key=lambda ev: ev["eventTime"])
+        out.append(f"   {e['eventTime']}  session={e['requestParameters'].get('roleSessionName')}  "
+                   f"by={e['userIdentity'].get('arn')}")
+        out.append(f"   userAgent={e.get('userAgent', '')[:110]}")
 
     minted = None
     out += ["", "2) The broker mints the proof-scoped credential: AssumeRole into axiom-executor-role"]
