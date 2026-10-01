@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AXIOM: agents hold proofs, not permissions</title>
+  <meta name="description" content="AXIOM is a deploy gate for AI coding agents on AWS. Deterministic axioms and IAM Access Analyzer automated reasoning decide, with no model in the security path, and AWS STS mints a 15-minute credential that can execute exactly one approved CloudFormation change set.">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="masthead">
+    <div class="wrap">
+      <p class="kicker">DEPLOY GATE FOR AI CODING AGENTS ON AWS</p>
+      <h1>AXIOM</h1>
+      <p class="tagline">Agents hold proofs, not permissions.</p>
+      <p class="lede">An AI agent with your AWS keys can do anything those keys allow. With AXIOM, the agent's own identity is view-only. To change anything, it submits a plan. CloudFormation computes the diff, deterministic axioms and IAM Access Analyzer's automated reasoning decide, and AWS STS mints a credential that lasts 15 minutes and can execute <em>that one change set</em>. Any other call is denied by IAM itself. There is no model in the security path: the AI is what AXIOM governs, never what it trusts.</p>
+      <nav class="nav">
+        <a href="#arena">ARENA</a>
+        <a href="#ledger">LEDGER</a>
+        <a href="#how">HOW IT WORKS</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="arena" class="section">
+      <h2>ARENA</h2>
+      <p class="note">Try to talk AXIOM into something destructive. Pick a scenario or edit the template, then run the axioms. Every run creates a real CloudFormation change set against the live stack <code>axiom-arena-baseline</code>. Arena change sets are evaluated and recorded, never executed, and never receive a credential.</p>
+
+      <div class="scenarios" id="scenarios" aria-label="Scenarios"></div>
+
+      <label class="field">
+        <span>DECLARED INTENT (recorded in the ledger for audit, not used to decide)</span>
+        <input id="intent" type="text" maxlength="500" placeholder="e.g. Add an index so support can look up orders by customer">
+      </label>
+      <label class="field">
+        <span>DECLARED SCOPE (resources the change may touch; anything else is blocked by AX-15)</span>
+        <input id="scope" type="text" maxlength="2000" placeholder="e.g. OrdersDLQ:add, OrdersQueue:modify">
+      </label>
+      <label class="field">
+        <span>CLOUDFORMATION TEMPLATE (full desired state of the stack)</span>
+        <textarea id="template" spellcheck="false" rows="18">Loading the live baseline template...</textarea>
+      </label>
+      <div class="actions">
+        <button id="run" class="btn primary" type="button">RUN AXIOMS</button>
+        <button id="reset" class="btn" type="button">RESET TO BASELINE</button>
+        <span id="status" class="status" role="status" aria-live="polite"></span>
+      </div>
+      <div id="result" class="result" aria-live="polite"></div>
+    </section>
+
+    <section id="ledger" class="section">
+      <h2>LEDGER</h2>
+      <p class="note">Every verdict AXIOM issues, from agents and from the arena. Each record carries a SHA-256 proof hash. When an agent receives a credential, the same hash is attached to its STS session as a tag, so CloudTrail ties every executed change back to its proof.</p>
+      <div class="table-wrap">
+        <table class="ledger">
+          <thead><tr><th>TIME</th><th>SOURCE</th><th>STACK</th><th>INTENT</th><th>VERDICT</th></tr></thead>
+          <tbody id="ledger-rows"><tr><td colspan="5">Loading...</td></tr></tbody>
+        </table>
+      </div>
+      <div id="ledger-detail" class="result"></div>
+    </section>
+
+    <section id="how" class="section">
+      <h2>HOW IT WORKS</h2>
+      <ol class="steps">
+        <li><b>01 / VIEW-ONLY AGENT.</b> The agent's IAM role (<code>axiom-agent-role</code>) can read the account but has no write path into CloudFormation and cannot assume other roles. Its only way to change anything is to ask AXIOM, and it must declare up front which resources the change may touch. Intent becomes a machine-checked contract instead of a sentence.</li>
+        <li><b>02 / CLOUDFORMATION COMPUTES THE DIFF.</b> The broker Lambda creates a change set using a dedicated CloudFormation service role. CloudFormation itself reports what will be added, modified, replaced or removed.</li>
+        <li><b>03 / AXIOMS AND AUTOMATED REASONING DECIDE.</b> Deterministic rules and IAM Access Analyzer's custom policy checks, which use automated reasoning to prove what a policy can and cannot allow, set the verdict. The report restates exactly which check fired and why. No model is consulted, so there is nothing to prompt-inject: a template that says "ignore your rules" is just a string.</li>
+        <li><b>04 / A PROOF BECOMES A 15-MINUTE KEY.</b> On ALLOW, AWS STS mints a session for <code>axiom-executor-role</code> with a session policy that allows <code>cloudformation:ExecuteChangeSet</code> on exactly that change set, tagged with the plan ID and proof hash. Only the broker can assume that role.</li>
+      </ol>
+
+      <h3>THE AXIOMS</h3>
+      <div class="table-wrap">
+        <table class="axioms">
+          <thead><tr><th>ID</th><th>RULE</th><th>ON VIOLATION</th></tr></thead>
+          <tbody>
+            <tr><td>AX-01</td><td>A stateful resource (DynamoDB, RDS, S3, EFS, Cognito, KMS, SQS...) is removed without a Retain or Snapshot policy</td><td>BLOCK</td></tr>
+            <tr><td>AX-02</td><td>A logical-ID rename: CloudFormation deletes the old resource and creates an empty new one</td><td>BLOCK</td></tr>
+            <tr><td>AX-03</td><td>A create-only property change forces replacement of a stateful resource</td><td>BLOCK</td></tr>
+            <tr><td>AX-04</td><td>Deletion protection or point-in-time recovery is turned off</td><td>BLOCK</td></tr>
+            <tr><td>AX-05</td><td>Ingress from 0.0.0.0/0 or ::/0 on anything other than TCP 80/443</td><td>BLOCK</td></tr>
+            <tr><td>AX-06</td><td>IAM wildcards, iam:PassRole on *, or admin managed policies</td><td>BLOCK</td></tr>
+            <tr><td>AX-07</td><td>CloudTrail, Config or GuardDuty removed or stopped</td><td>BLOCK</td></tr>
+            <tr><td>AX-08</td><td>Credentials or secrets in plaintext</td><td>BLOCK</td></tr>
+            <tr><td>AX-09</td><td>Always-on cost (NAT gateways, GPU instances, clusters)</td><td>WARN</td></tr>
+            <tr><td>AX-10</td><td>Traffic entry points removed (DNS, CDN, load balancers, APIs)</td><td>WARN</td></tr>
+            <tr><td>AX-11</td><td>IAM Access Analyzer CheckNoPublicAccess fails on a resource policy</td><td>BLOCK</td></tr>
+            <tr><td>AX-12</td><td>Encryption at rest disabled</td><td>WARN</td></tr>
+            <tr><td>AX-13</td><td>A resource policy newly grants another AWS account access (CheckNoNewAccess)</td><td>BLOCK</td></tr>
+            <tr><td>AX-14</td><td>An identity policy grants privilege-escalation actions (CheckAccessNotGranted)</td><td>BLOCK</td></tr>
+            <tr><td>AX-15</td><td>The change set touches a resource outside the agent's declared scope (removals must be declared explicitly)</td><td>BLOCK</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">AXIOM. Built by an AI coding agent (Claude Code with the AWS Agent Toolkit) on AWS Lambda, Amazon API Gateway, Amazon DynamoDB, AWS CloudFormation, IAM Access Analyzer and AWS STS. This page is served by its own Lambda function, which has no AWS permissions.</div>
+  </footer>
+
+  <noscript><p class="wrap note">The arena and ledger need JavaScript. Everything above explains how AXIOM works without it.</p></noscript>
+  <script src="/app.js"></script>
+</body>
+</html>

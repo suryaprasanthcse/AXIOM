@@ -1,0 +1,22 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "AXIOM demo app (agent path): a 'harmless' key rename that forces the orders table to be replaced.",
+  "Resources": {
+    "OrdersTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Delete",
+      "UpdateReplacePolicy": "Delete",
+      "Properties": {
+        "BillingMode": "PAY_PER_REQUEST",
+        "AttributeDefinitions": [{ "AttributeName": "orderPk", "AttributeType": "S" }],
+        "KeySchema": [{ "AttributeName": "orderPk", "KeyType": "HASH" }],
+        "PointInTimeRecoverySpecification": { "PointInTimeRecoveryEnabled": true },
+        "Tags": [{ "Key": "app", "Value": "axiom-demo" }]
+      }
+    },
+    "OrdersQueue": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": { "SqsManagedSseEnabled": true }
+    }
+  }
+}

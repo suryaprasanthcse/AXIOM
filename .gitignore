@@ -1,0 +1,13 @@
+node_modules/
+infra/cdk.out/
+broker/dist/
+__pycache__/
+*.pyc
+# Minted session credentials (expire after 15 minutes, never commit)
+.axiom/
+# AWS console key downloads: never commit
+*accessKeys*.csv
+*credentials*.csv
+# Account-specific deploy outputs
+axiom-outputs.json
+.axiom-outputs.json

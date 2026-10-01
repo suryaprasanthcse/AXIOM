@@ -1,0 +1,9 @@
+{
+  "app": "npx tsx bin/axiom.ts",
+  "context": {
+    "builderPrincipalArn": "arn:aws:iam::841535407298:user/axiom-cdk-builder",
+    "@aws-cdk/aws-iam:minimizePolicies": true,
+    "@aws-cdk/aws-s3:createDefaultLoggingPolicy": true,
+    "@aws-cdk/aws-lambda:recognizeLayerVersion": true
+  }
+}

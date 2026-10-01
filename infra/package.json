@@ -1,0 +1,21 @@
+{
+  "name": "axiom-infra",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "cdk": "cdk",
+    "synth": "cdk synth",
+    "deploy": "cdk deploy",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "2.272.0",
+    "constructs": "^10.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "aws-cdk": "2.1143.0",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9.2"
+  }
+}

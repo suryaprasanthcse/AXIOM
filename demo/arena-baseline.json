@@ -1,0 +1,51 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "AXIOM arena baseline: a small order-processing backend. Arena change sets against it are evaluated, never executed.",
+  "Resources": {
+    "OrdersTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Delete",
+      "UpdateReplacePolicy": "Delete",
+      "Properties": {
+        "BillingMode": "PAY_PER_REQUEST",
+        "AttributeDefinitions": [{ "AttributeName": "orderId", "AttributeType": "S" }],
+        "KeySchema": [{ "AttributeName": "orderId", "KeyType": "HASH" }],
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": { "PointInTimeRecoveryEnabled": true },
+        "Tags": [{ "Key": "app", "Value": "axiom-arena" }]
+      }
+    },
+    "OrdersQueue": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "SqsManagedSseEnabled": true,
+        "MessageRetentionPeriod": 345600
+      }
+    },
+    "OrdersQueuePolicy": {
+      "Type": "AWS::SQS::QueuePolicy",
+      "Properties": {
+        "Queues": [{ "Ref": "OrdersQueue" }],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "AccountProducers",
+              "Effect": "Allow",
+              "Principal": { "AWS": { "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:root" } },
+              "Action": "sqs:SendMessage",
+              "Resource": { "Fn::GetAtt": ["OrdersQueue", "Arn"] }
+            }
+          ]
+        }
+      }
+    },
+    "WebSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Public HTTPS only",
+        "SecurityGroupIngress": [{ "IpProtocol": "tcp", "FromPort": 443, "ToPort": 443, "CidrIp": "0.0.0.0/0" }]
+      }
+    }
+  }
+}
