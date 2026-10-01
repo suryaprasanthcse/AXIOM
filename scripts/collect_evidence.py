@@ -123,23 +123,32 @@ def exhibit_git() -> str:
 
 
 def exhibit_mcp() -> str | None:
-    """Agent calls made through the AWS MCP Server (Agent Toolkit), if any exist yet."""
-    ct = boto3.Session(profile_name="axiom", region_name="us-west-2").client("cloudtrail")
+    """Agent calls made through the AWS MCP Server (Agent Toolkit), reads and writes, both regions."""
+    session = boto3.Session(profile_name="axiom")
     since = datetime.now(timezone.utc) - timedelta(days=2)
-    pages = ct.get_paginator("lookup_events").paginate(
-        LookupAttributes=[{"AttributeKey": "ReadOnly", "AttributeValue": "true"}], StartTime=since)
-    rows = []
-    for page in pages:
-        for e in page["Events"]:
-            ev = json.loads(e["CloudTrailEvent"])
-            if ev.get("userIdentity", {}).get("invokedBy") == "aws-mcp.amazonaws.com":
-                rows.append(f"   {ev['eventTime']}  {ev['eventSource']}:{ev['eventName']}  "
-                            f"by={ev['userIdentity'].get('arn')}  invokedBy={ev['userIdentity']['invokedBy']}")
-        if len(rows) >= 12:
-            break
+    rows = {}
+    for region in ("us-west-2", "us-east-1"):  # IAM events are recorded in us-east-1
+        ct = session.client("cloudtrail", region_name=region)
+        for read_only in ("true", "false"):
+            pages = ct.get_paginator("lookup_events").paginate(
+                LookupAttributes=[{"AttributeKey": "ReadOnly", "AttributeValue": read_only}], StartTime=since)
+            for page in pages:
+                for e in page["Events"]:
+                    ev = json.loads(e["CloudTrailEvent"])
+                    ui = ev.get("userIdentity", {})
+                    if ui.get("invokedBy") != "aws-mcp.amazonaws.com":
+                        continue
+                    rows[ev["eventID"]] = (
+                        ev["eventTime"],
+                        f"   {ev['eventTime']}  {ev['eventName']:<18} {ev.get('errorCode', 'allowed'):<13} "
+                        f"region={region}  readOnly={read_only}\n"
+                        f"      by={ui.get('arn')}  invokedBy={ui['invokedBy']}  sourceIP={ev.get('sourceIPAddress')}")
     if not rows:
         return None
-    return "CloudTrail events made by the coding agent through the AWS MCP Server (Agent Toolkit)\n\n" + "\n".join(rows)
+    lines = [text for _, text in sorted(rows.values())]
+    return ("CloudTrail: calls the coding agent made through the AWS MCP Server (Agent Toolkit)\n"
+            "The agent connects as its view-only role: reads succeed, writes are refused by IAM.\n\n"
+            + "\n".join(lines))
 
 
 def render(name: str, title: str, body: str) -> Path:

@@ -1,8 +1,8 @@
 CloudTrail (us-west-2), cross-checked against AXIOM ledger plan 1790870119809-1dacf9af
 
 1) The coding agent's session: AssumeRole into axiom-agent-role
-   2026-10-01T15:55:17Z  session=ai-coding-agent  by=arn:aws:iam::8415****7298:user/axiom-cdk-builder
-   userAgent=Boto3/1.43.106 md/Botocore#1.43.106 ua/2.1 os/windows#11 md/arch#amd64 lang/python#3.14.7 md/pyimpl#CPython m/
+   2026-10-01T17:41:11Z  session=ai-coding-agent  by=arn:aws:iam::8415****7298:user/axiom-cdk-builder
+   userAgent=Boto3/1.43.106 md/Botocore#1.43.106 md/awscrt#0.36.0 ua/2.1 os/windows#11 md/arch#amd64 lang/python#3.14.7 md/
 
 2) The broker mints the proof-scoped credential: AssumeRole into axiom-executor-role
    2026-10-01T15:55:24Z  by=arn:aws:sts::8415****7298:assumed-role/axiom-broker-role/axiom-broker

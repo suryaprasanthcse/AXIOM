@@ -1,4 +1,17 @@
 $ git log --format=...
+commit 9eec7ed  2026-10-01 22:27:59 +0530
+Author: Surya Prasanth R
+
+Add reproducible proof-of-agent-connection evidence
+
+scripts/collect_evidence.py pulls four exhibits live from CloudTrail, the
+AXIOM ledger and git, masks account IDs and IPs, and renders them to PNG
+with headless Edge. CloudTrail independently confirms the chain: the
+ledger proof hash equals the credential's axiom-proof session tag, and the
+ledger access key is the one that executed the change set.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 commit ef729a4  2026-10-01 22:23:31 +0530
 Author: Surya Prasanth R
 

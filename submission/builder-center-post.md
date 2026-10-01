@@ -3,7 +3,7 @@
 **App category:** Workplace Efficiency · **Focus track:** Startup
 **Tags:** #workplace-efficiency #startups
 **Live app:** https://oocyfygzrk.execute-api.us-west-2.amazonaws.com/
-**Built with:** Claude Code (coding agent) on AWS Lambda, Amazon API Gateway, AWS CloudFormation, AWS STS, IAM Access Analyzer and Amazon DynamoDB
+**Built with:** Claude Code (coding agent) and the AWS MCP Server (Agent Toolkit for AWS), on AWS Lambda, Amazon API Gateway, AWS CloudFormation, AWS STS, IAM Access Analyzer and Amazon DynamoDB
 
 > **Try it in 60 seconds:** open the live app, click **"Prompt-injected access grant"**, then **RUN AXIOMS**. A change that claims to "fix log retention" quietly grants another AWS account read access to the orders queue. AXIOM blocks it twice: IAM Access Analyzer proves the new cross-account access, and the agent's own declared scope shows it touched a resource it never mentioned.
 
@@ -86,7 +86,7 @@ Arena page: served by its own Lambda with no AWS permissions, same origin as the
 - **Executor role:** trusts *only* the broker's role.
 - **CloudFormation service role:** the only identity that changes demo resources.
 
-**AWS services used:** AWS Lambda (broker and page server), Amazon API Gateway (HTTP API, IAM authorization, per-route throttling), AWS CloudFormation (change sets, service role), AWS CDK, IAM and AWS STS (session policies, session tags), IAM Access Analyzer (custom policy checks), Amazon DynamoDB (ledger with point-in-time recovery), Amazon CloudWatch Logs, plus Amazon SQS, DynamoDB and EC2 security groups as the demo workload.
+**AWS services used:** the AWS MCP Server from the Agent Toolkit for AWS (the coding agent's AWS connection), AWS Lambda (broker and page server), Amazon API Gateway (HTTP API, IAM authorization, per-route throttling), AWS CloudFormation (change sets, service role), AWS CDK, IAM and AWS STS (session policies, session tags), IAM Access Analyzer (custom policy checks), Amazon DynamoDB (ledger with point-in-time recovery), Amazon CloudWatch Logs, plus Amazon SQS, DynamoDB and EC2 security groups as the demo workload.
 
 ## Implementation quality: verified in production, not just written
 
@@ -123,6 +123,7 @@ AXIOM runs entirely on an **AWS Free-plan account, by design**. No card is bille
 - Inspected the synthesized IAM trust policies before every deploy, then ran the live end-to-end and arena suites against AWS.
 - Diagnosed the Bedrock failure down to the account's Free plan through AWS APIs, and found the tag-propagation bug from AXIOM's own output.
 - **Caught our admin access-key file sitting in the project folder before the first commit**, and excluded it from git before anything was staged.
+- Connected to AWS through the **AWS MCP Server (Agent Toolkit for AWS)** as AXIOM's view-only agent role. It diagnosed the broken connection (the proxy's `uvx` launcher was missing), fixed it, and verified it with an MCP handshake before saving the config. Through that channel it can read the account but cannot change it (Exhibit 5).
 
 **The human stayed in the loop where it matters.** Claude Code's own safety layer refused to auto-approve deploys that change IAM. Every `cdk deploy` was reviewed and approved by a person, so the agent that built AXIOM was itself working under the principle AXIOM enforces. The human also made the product calls: the category, dropping Bedrock, and staying on the Free plan.
 
@@ -173,7 +174,15 @@ Author: Surya Prasanth R
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
-<!-- TODO: Exhibit 5, AWS MCP Server (Agent Toolkit) calls with invokedBy: aws-mcp.amazonaws.com, once the server is reconnected. -->
+**Exhibit 5: the coding agent on the AWS MCP Server (Agent Toolkit for AWS), recorded by CloudTrail.** Claude Code connects to the AWS MCP Server as AXIOM's view-only agent role, so even AWS's official agent channel can only look. Reads succeed. The write and the IAM read are refused by IAM, and CloudTrail marks every call `invokedBy: aws-mcp.amazonaws.com`.
+
+<!-- Upload: submission/evidence/5-aws-mcp-server.png -->
+```
+GetCallerIdentity  allowed       by=assumed-role/axiom-agent-role/ai-coding-agent  invokedBy=aws-mcp.amazonaws.com
+DescribeStacks     allowed       by=assumed-role/axiom-agent-role/ai-coding-agent  invokedBy=aws-mcp.amazonaws.com
+CreateChangeSet    AccessDenied  by=assumed-role/axiom-agent-role/ai-coding-agent  invokedBy=aws-mcp.amazonaws.com
+GetRole            AccessDenied  by=assumed-role/axiom-agent-role/ai-coding-agent  invokedBy=aws-mcp.amazonaws.com
+```
 
 
 ## Try the proof yourself

@@ -1,0 +1,11 @@
+CloudTrail: calls the coding agent made through the AWS MCP Server (Agent Toolkit)
+The agent connects as its view-only role: reads succeed, writes are refused by IAM.
+
+   2026-10-01T17:41:14Z  GetCallerIdentity  allowed       region=us-west-2  readOnly=true
+      by=arn:aws:sts::8415****7298:assumed-role/axiom-agent-role/ai-coding-agent  invokedBy=aws-mcp.amazonaws.com  sourceIP=aws-mcp.amazonaws.com
+   2026-10-01T17:41:15Z  CreateChangeSet    AccessDenied  region=us-west-2  readOnly=false
+      by=arn:aws:sts::8415****7298:assumed-role/axiom-agent-role/ai-coding-agent  invokedBy=aws-mcp.amazonaws.com  sourceIP=aws-mcp.amazonaws.com
+   2026-10-01T17:41:15Z  DescribeStacks     allowed       region=us-west-2  readOnly=true
+      by=arn:aws:sts::8415****7298:assumed-role/axiom-agent-role/ai-coding-agent  invokedBy=aws-mcp.amazonaws.com  sourceIP=aws-mcp.amazonaws.com
+   2026-10-01T17:41:15Z  GetRole            AccessDenied  region=us-east-1  readOnly=true
+      by=arn:aws:sts::8415****7298:assumed-role/axiom-agent-role/ai-coding-agent  invokedBy=aws-mcp.amazonaws.com  sourceIP=aws-mcp.amazonaws.com
