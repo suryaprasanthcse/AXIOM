@@ -1,4 +1,6 @@
 $ git log  (one line per commit, with its co-author trailer)
+931cf19  2026-10-02 11:25  Surya Prasanth R  Polish submission: compact git exhibit, captions, real links
+                 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 a8dbe42  2026-10-02 10:39  Surya Prasanth R  Compress submission post under Builder Center's 3000-character limit
                  Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 6996bad  2026-10-02 00:49  Surya Prasanth R  Mask credential IDs in evidence; make Exhibit 3 text-only

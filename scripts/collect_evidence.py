@@ -12,6 +12,8 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
+import time
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -171,10 +173,17 @@ pre{{margin:0;padding:18px;white-space:pre-wrap;word-break:break-all}}
 <pre>{html.escape(body).replace("MATCH ", '<span class="m">MATCH</span> ').replace("MISMATCH", '<span class="x">MISMATCH</span>')}</pre>""",
                     encoding="utf-8")
     png = OUT / f"{name}.png"
+    png.unlink(missing_ok=True)  # never let a stale image pass as a fresh render
     height = 90 + 23 * sum(1 + len(line) // 125 for line in body.splitlines())
-    subprocess.run([EDGE, "--headless=new", "--disable-gpu", "--hide-scrollbars",
-                    f"--user-data-dir={OUT / '.edge-profile'}", f"--window-size=1280,{height}",
-                    f"--screenshot={png}", page.as_uri()], capture_output=True, timeout=60)
+    # A fresh profile per render: a lingering Edge process holding a shared profile makes new launches no-ops.
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as profile:
+        subprocess.run([EDGE, "--headless=new", "--disable-gpu", "--hide-scrollbars",
+                        f"--user-data-dir={profile}", f"--window-size=1280,{height}",
+                        f"--screenshot={png}", page.as_uri()], capture_output=True, timeout=60)
+        # msedge.exe can return before its child process writes the file; wait before removing the profile.
+        deadline = time.time() + 20
+        while time.time() < deadline and not (png.exists() and png.stat().st_size > 0):
+            time.sleep(0.25)
     page.unlink()
     return png
 
