@@ -51,7 +51,7 @@ MAX_TEMPLATE_BYTES = 51200
 SESSION_SECONDS = 900
 NO_CHANGES = ("didn't contain changes", "No updates are to be performed")
 # Bump when evaluation output changes so the arena cache stops serving older records.
-EVALUATOR_VERSION = 4
+EVALUATOR_VERSION = 5
 
 _config = Config(retries={"total_max_attempts": 3, "mode": "standard"})
 cfn = boto3.client("cloudformation", config=_config)
