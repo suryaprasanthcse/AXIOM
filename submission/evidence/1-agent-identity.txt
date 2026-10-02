@@ -1,6 +1,6 @@
 $ aws sts get-caller-identity --profile axiom          # the builder credentials Claude Code ran with
 {
-    "UserId": "AIDA4H33LITBEAXFKNMJ3",
+    "UserId": "AIDA...NMJ3",
     "Account": "8415****7298",
     "Arn": "arn:aws:iam::8415****7298:user/axiom-cdk-builder"
 }

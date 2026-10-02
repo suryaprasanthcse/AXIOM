@@ -31,8 +31,9 @@ ACCOUNT = "841535407298"
 
 def mask(text: str) -> str:
     text = text.replace(ACCOUNT, f"{ACCOUNT[:4]}****{ACCOUNT[-4:]}")
-    # Credential and IAM unique IDs (ASIA/AKIA access keys, AIDA users, AROA roles): keep both ends for matching.
-    text = re.sub(r"\b((?:AKIA|ASIA|AIDA|AROA)[A-Z0-9]{16})\b", lambda m: f"{m.group(1)[:4]}...{m.group(1)[-4:]}", text)
+    # Access key IDs (AKIA/ASIA + 16) and IAM unique IDs (AIDA users, AROA roles + 17): keep both ends for matching.
+    text = re.sub(r"\b((?:AKIA|ASIA)[A-Z0-9]{16}|(?:AIDA|AROA)[A-Z0-9]{17})\b",
+                  lambda m: f"{m.group(1)[:4]}...{m.group(1)[-4:]}", text)
     return re.sub(r"\b\d{1,3}(?:\.\d{1,3}){3}\b", "x.x.x.x", text)
 
 
