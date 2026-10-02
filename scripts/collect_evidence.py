@@ -124,7 +124,9 @@ def exhibit_ledger(record: dict) -> str:
 
 
 def exhibit_git() -> str:
-    return "$ git log --format=...\n" + run(["git", "log", "--format=commit %h  %ad%nAuthor: %an%n%n%B", "--date=iso"])
+    log = run(["git", "log", "--date=format:%Y-%m-%d %H:%M",
+               "--format=%h  %ad  %an  %s%n                 %(trailers:key=Co-Authored-By,separator=)"])
+    return "$ git log  (one line per commit, with its co-author trailer)\n" + log
 
 
 def exhibit_mcp() -> str | None:

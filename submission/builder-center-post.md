@@ -1,7 +1,5 @@
-# AXIOM: AI agents hold proofs, not permissions
-
 **Category:** Workplace Efficiency · **Track:** Startup · #workplace-efficiency #startups
-**Live:** https://oocyfygzrk.execute-api.us-west-2.amazonaws.com/
+**Live:** [oocyfygzrk.execute-api.us-west-2.amazonaws.com](https://oocyfygzrk.execute-api.us-west-2.amazonaws.com/)
 
 An agent with AWS keys can do anything the keys allow. AXIOM makes its role view-only. To change anything, it submits a template and a declared scope (`OrdersDLQ:add, OrdersQueue:modify`). CloudFormation computes the change set. 15 deterministic axioms plus IAM Access Analyzer automated reasoning decide. On ALLOW, STS mints a 15-minute credential for that one change set. Anything else: AccessDenied, by IAM.
 
@@ -21,14 +19,14 @@ Claude Code wrote the CDK stack, broker, UI and tests, ran every live check, and
 Services: AWS MCP Server (Agent Toolkit), Lambda, API Gateway, CloudFormation, STS, IAM Access Analyzer, DynamoDB.
 
 ## Proof of agent connection
+**1. Agent identity:** `assumed-role/axiom-agent-role/ai-coding-agent`. Direct writes denied.
 <!-- Upload: submission/evidence/1-agent-identity.png -->
-Agent: `assumed-role/axiom-agent-role/ai-coding-agent`. Direct writes denied.
+**2. CloudTrail chain:** ledger proof hash and key both MATCH CloudTrail.
 <!-- Upload: submission/evidence/2-cloudtrail-proof-chain.png -->
-`MATCH ledger proof_hash == CloudTrail tag axiom-proof`
-`MATCH ledger key == key that ran ExecuteChangeSet`
-Ledger: `/api/arena/plan/1790870119809-1dacf9af`
+**3. [Ledger record](https://oocyfygzrk.execute-api.us-west-2.amazonaws.com/api/arena/plan/1790870119809-1dacf9af)** of the agent's session.
+**4. Git:** Claude Code co-authors every commit.
 <!-- Upload: submission/evidence/4-git-coauthor.png -->
+**5. AWS MCP Server:** CloudTrail `invokedBy: aws-mcp.amazonaws.com`. Reads allowed, CreateChangeSet denied.
 <!-- Upload: submission/evidence/5-aws-mcp-server.png -->
-CloudTrail: `invokedBy: aws-mcp.amazonaws.com`. Reads allowed, CreateChangeSet denied.
 
 **Next:** CloudFormation Hooks, MCP-aware SCPs, Marketplace.

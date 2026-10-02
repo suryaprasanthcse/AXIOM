@@ -1,70 +1,15 @@
-$ git log --format=...
-commit f960961  2026-10-01 23:16:56 +0530
-Author: Surya Prasanth R
-
-Evidence: show the agent session active when the plan ran
-
-Exhibit 2 picked the agent's most recent AssumeRole, which broke the
-chronology once newer sessions existed. It now selects the latest agent
-session at or before the plan's creation, so the chain reads in order.
-
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-
-commit 2e53ea5  2026-10-01 23:15:10 +0530
-Author: Surya Prasanth R
-
-Add Exhibit 5: coding agent on the AWS MCP Server, from CloudTrail
-
-The agent connects to the AWS MCP Server (Agent Toolkit for AWS) as the
-view-only axiom-agent-role. CloudTrail records each call with
-invokedBy aws-mcp.amazonaws.com: GetCallerIdentity and DescribeStacks
-allowed, CreateChangeSet and iam:GetRole denied by IAM. The evidence
-script now searches both regions and read and write events. The post
-credits the AWS MCP Server and replaces the last placeholder.
-
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-
-commit 9eec7ed  2026-10-01 22:27:59 +0530
-Author: Surya Prasanth R
-
-Add reproducible proof-of-agent-connection evidence
-
-scripts/collect_evidence.py pulls four exhibits live from CloudTrail, the
-AXIOM ledger and git, masks account IDs and IPs, and renders them to PNG
-with headless Edge. CloudTrail independently confirms the chain: the
-ledger proof hash equals the credential's axiom-proof session tag, and the
-ledger access key is the one that executed the change set.
-
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-
-commit ef729a4  2026-10-01 22:23:31 +0530
-Author: Surya Prasanth R
-
-Add AWS Builder Center submission draft
-
-Maps the post to the four 25% judging pillars from the Rules tab and
-documents AWS services and coding-agent use. The proof-of-connection
-section still needs evidence before publishing.
-
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-
-commit 401dd04  2026-10-01 21:56:46 +0530
-Author: Surya Prasanth R
-
-AXIOM: deploy gate where AI agents hold proofs, not permissions
-
-Initial import of the Zero to Shipped build, Phase 1 plus its pivots.
-
-- CDK stack: view-only agent role, broker Lambda, executor role trusted
-  only by the broker, CloudFormation service role, proof ledger, HTTP API
-- Broker: CloudFormation computes the diff; 15 deterministic axioms
-  (AX-01..AX-15, including AX-15 declared scope) and IAM Access Analyzer
-  custom policy checks decide; on ALLOW, STS mints a 15-minute credential
-  that can execute exactly one change set
-- Arena UI served by a permission-less Lambda; agent client; arena suite
-  (12/12 live) and 20 unit tests
-- Pivots: CloudFront dropped (new-account restriction), Bedrock dropped
-  (Free plan) in favour of a deterministic plain-text proof report;
-  arena cache and daily cap on paid Access Analyzer checks
-
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+$ git log  (one line per commit, with its co-author trailer)
+a8dbe42  2026-10-02 10:39  Surya Prasanth R  Compress submission post under Builder Center's 3000-character limit
+                 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+6996bad  2026-10-02 00:49  Surya Prasanth R  Mask credential IDs in evidence; make Exhibit 3 text-only
+                 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+f960961  2026-10-01 23:16  Surya Prasanth R  Evidence: show the agent session active when the plan ran
+                 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+2e53ea5  2026-10-01 23:15  Surya Prasanth R  Add Exhibit 5: coding agent on the AWS MCP Server, from CloudTrail
+                 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+9eec7ed  2026-10-01 22:27  Surya Prasanth R  Add reproducible proof-of-agent-connection evidence
+                 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+ef729a4  2026-10-01 22:23  Surya Prasanth R  Add AWS Builder Center submission draft
+                 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+401dd04  2026-10-01 21:56  Surya Prasanth R  AXIOM: deploy gate where AI agents hold proofs, not permissions
+                 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
