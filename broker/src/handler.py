@@ -50,7 +50,7 @@ MAX_TEMPLATE_BYTES = 51200
 SESSION_SECONDS = 900
 NO_CHANGES = ("didn't contain changes", "No updates are to be performed")
 # Bump when evaluation output changes so the arena cache stops serving older records.
-EVALUATOR_VERSION = 3
+EVALUATOR_VERSION = 4
 
 _config = Config(retries={"total_max_attempts": 3, "mode": "standard"})
 cfn = boto3.client("cloudformation", config=_config)
@@ -253,7 +253,10 @@ def _wait_for_change_set(cs_arn: str) -> tuple[str, str, list[dict]]:
             ChangeSetName=cs_arn, WaiterConfig={"Delay": 1, "MaxAttempts": 14})
     except WaiterError:
         pass  # FAILED or slow: the status below says which
-    pages = cfn.get_paginator("describe_change_set").paginate(ChangeSetName=cs_arn, IncludePropertyValues=True)
+    # No IncludePropertyValues: with it, CloudFormation can report unchanged resources whose properties hold
+    # references as "Modify ... {{changeSet:KNOWN_AFTER_APPLY}}", which made AX-15 block safe changes.
+    # The axioms only need actions, replacement flags and change sources, which the plain response has.
+    pages = cfn.get_paginator("describe_change_set").paginate(ChangeSetName=cs_arn)
     status, reason, changes = "UNKNOWN", "", []
     for page in pages:
         status, reason = page.get("Status", status), page.get("StatusReason", reason) or reason
