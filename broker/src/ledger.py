@@ -12,8 +12,12 @@ import boto3
 from boto3.dynamodb.conditions import Attr, Key
 
 FEED = "ledger"
-ARENA_CACHE_SECONDS = 24 * 3600
+# Verdicts are deterministic and the cache key includes the evaluator version, so arena results can be
+# served for the whole judging window. Judges' scenario clicks then never depend on the daily review cap.
+ARENA_CACHE_SECONDS = 21 * 24 * 3600
+RECENT_CACHE_SECONDS = 5
 _table = None
+_recent_cache: dict = {}
 
 
 def _ledger():
@@ -30,6 +34,7 @@ def canonical_hash(doc: dict) -> str:
 
 
 def put(record: dict) -> None:
+    _recent_cache.clear()  # the next ledger view in this instance shows the new record
     _ledger().put_item(Item={
         "plan_id": record["plan_id"],
         "feed": FEED,
@@ -46,14 +51,19 @@ def get(plan_id: str) -> dict | None:
     return json.loads(item["doc"]) if item else None
 
 
-def recent(limit: int = 40) -> list[dict]:
+def recent(limit: int = 25) -> list[dict]:
+    """Latest verdicts. Cached for a few seconds so a flood of page loads cannot become a flood of reads."""
+    if _recent_cache.get("expires", 0) > time.time():
+        return _recent_cache["records"]
     items = _ledger().query(
         IndexName="byTime",
         KeyConditionExpression=Key("feed").eq(FEED),
         ScanIndexForward=False,
         Limit=limit,
     ).get("Items", [])
-    return [_summary(json.loads(i["doc"])) for i in items]
+    records = [_summary(json.loads(i["doc"])) for i in items]
+    _recent_cache.update(records=records, expires=time.time() + RECENT_CACHE_SECONDS)
+    return records
 
 
 def cached_arena(key: str) -> dict | None:
@@ -72,15 +82,15 @@ def remember_arena(key: str, plan_id: str) -> None:
     })
 
 
-def take_check_budget(calls: int, daily_cap: int) -> bool:
-    """Atomically reserve `calls` paid Access Analyzer checks from today's arena budget."""
+def take_budget(kind: str, units: int, daily_cap: int) -> bool:
+    """Atomically reserve `units` from today's arena budget of this kind (e.g. "checks", "reviews")."""
     day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     try:
         _ledger().update_item(
-            Key={"plan_id": f"budget#{day}"},
+            Key={"plan_id": f"budget#{kind}#{day}"},
             UpdateExpression="ADD used :n",
-            ConditionExpression=Attr("used").not_exists() | Attr("used").lte(daily_cap - calls),
-            ExpressionAttributeValues={":n": calls},
+            ConditionExpression=Attr("used").not_exists() | Attr("used").lte(daily_cap - units),
+            ExpressionAttributeValues={":n": units},
         )
         return True
     except _ledger().meta.client.exceptions.ConditionalCheckFailedException:

@@ -18,6 +18,8 @@ const AGENT_ROLE_NAME = 'axiom-agent-role';
 const ARENA_STACK = 'axiom-arena-baseline';
 /** Paid IAM Access Analyzer checks ($0.002 each) the public arena may spend per UTC day. */
 const ARENA_DAILY_CHECKS = 250;
+/** Fresh (uncached) arena evaluations per UTC day: bounds Lambda time and ledger writes under abuse. */
+const ARENA_DAILY_REVIEWS = 300;
 
 /**
  * AXIOM core: the trust boundary that makes "agents hold proofs, not permissions" true.
@@ -163,6 +165,7 @@ export class AxiomStack extends Stack {
         AGENT_ROLE_NAME,
         ARENA_STACK,
         ARENA_DAILY_CHECKS: String(ARENA_DAILY_CHECKS),
+        ARENA_DAILY_REVIEWS: String(ARENA_DAILY_REVIEWS),
       },
       logGroup: new logs.LogGroup(this, 'BrokerLogs', {
         logGroupName: '/aws/lambda/axiom-broker',

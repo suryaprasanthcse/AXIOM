@@ -45,6 +45,7 @@ EXECUTOR_ROLE_ARN = os.environ["EXECUTOR_ROLE_ARN"]
 AGENT_ROLE_NAME = os.environ["AGENT_ROLE_NAME"]
 ARENA_STACK = os.environ["ARENA_STACK"]
 ARENA_DAILY_CHECKS = int(os.environ.get("ARENA_DAILY_CHECKS", "250"))
+ARENA_DAILY_REVIEWS = int(os.environ.get("ARENA_DAILY_REVIEWS", "300"))
 DEMO_STACK_PATTERN = re.compile(r"^axiom-demo-[a-z0-9-]{1,40}$")
 MAX_TEMPLATE_BYTES = 51200
 SESSION_SECONDS = 900
@@ -155,6 +156,10 @@ def evaluate(stack: str, template_in, intent: str, scope: list[str] | None, sour
         cached = ledger.cached_arena(cache_key)
         if cached:
             return {**cached, "cached": True}, None
+        # Cached results above are always served; only fresh evaluations count against the daily cap.
+        if not ledger.take_budget("reviews", 1, ARENA_DAILY_REVIEWS):
+            raise RequestError(429, "The arena's daily limit for new evaluations is reached. The built-in "
+                                    "scenarios still answer from cache; try a custom template tomorrow.")
 
     plan_id = f"{int(started * 1000):013d}-{secrets.token_hex(4)}"
     cs_name = f"axiom-{plan_id}"
@@ -164,7 +169,7 @@ def evaluate(stack: str, template_in, intent: str, scope: list[str] | None, sour
         if cs_type == "UPDATE" else {}
 
     # The authenticated agent path always gets the paid checks; the public arena is budgeted.
-    budget = (lambda n: True) if source == "agent" else (lambda n: ledger.take_check_budget(n, ARENA_DAILY_CHECKS))
+    budget = (lambda n: True) if source == "agent" else (lambda n: ledger.take_budget("checks", n, ARENA_DAILY_CHECKS))
 
     # Access Analyzer only needs the templates, so it runs while CloudFormation computes the diff.
     with ThreadPoolExecutor(max_workers=1) as pool:
