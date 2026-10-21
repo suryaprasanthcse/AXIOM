@@ -45,3 +45,7 @@ AXIOM was directed and orchestrated by Surya Prasanth R, who set the architectur
 ---
 
 Independent project. Not affiliated with or endorsed by AWS.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
